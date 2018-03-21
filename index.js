@@ -25,7 +25,7 @@ const run = (promise, resolve, reject) => {
 
     try {
       if (result === promise)
-        reject(new TypeError(''))
+        reject(new TypeError('I don\'t think so, muhehe.'))
       else if (then = isPromiseLike(result))
         then.call(result, x($), x(reject))
       else

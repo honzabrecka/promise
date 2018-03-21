@@ -18,4 +18,6 @@ const deferred = () => {
 
 module.exports = {
   deferred,
+  resolved: P.resolved,
+  rejected: P.rejected,
 }

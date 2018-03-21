@@ -89,6 +89,10 @@ class P {
 
 }
 
+P.resolved = (value) => new P((resolve, _) => { resolve(value) })
+
+P.rejected = (error) => new P((_, reject) => { reject(error) })
+
 module.exports = {
   P,
 }

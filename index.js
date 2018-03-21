@@ -12,7 +12,7 @@ const isPromiseLike = (v) => {
 const first = ([v]) => v
 const second = ([_, v]) => v
 
-const run = (promise, res, rej) => {
+const run = (promise, resolve, reject) => {
   const $ = (result) => {
     let done = false
     let then
@@ -25,13 +25,13 @@ const run = (promise, res, rej) => {
 
     try {
       if (result === promise)
-        rej(new TypeError(''))
+        reject(new TypeError(''))
       else if (then = isPromiseLike(result))
-        then.call(result, x($), x(rej))
+        then.call(result, x($), x(reject))
       else
-        res(result)
-    } catch (e) {
-      if (!done) rej(e)
+        resolve(result)
+    } catch (error) {
+      if (!done) reject(error)
     }
   }
   return $
@@ -43,9 +43,9 @@ class P {
     this.state = pending
     this.thens = []
 
-    const x = (state, selector) => (value) => {
+    const x = (finalState, selector) => (value) => {
       if (this.state !== pending) return
-      this.state = state
+      this.state = finalState
       this.value = value
       this.thens.forEach((then) => selector(then)(value))
     }
@@ -54,9 +54,9 @@ class P {
   }
 
   then(onResolve, onReject) {
-    let resolve, reject
+    let resolve$, reject$
 
-    const promise = new P((res, rej) => {
+    const promise = new P((resolve, reject) => {
       const x = (f, cb) => (value) => {
         process.nextTick(() => {
           if (typeof f !== 'function') {
@@ -65,23 +65,23 @@ class P {
           }
 
           try {
-            run(promise, res, rej)(f(value))
-          } catch (e) {
-            rej(e)
+            run(promise, resolve, reject)(f(value))
+          } catch (error) {
+            reject(error)
           }
         })
       }
 
-      resolve = x(onResolve, res)
-      reject = x(onReject, rej)
+      resolve$ = x(onResolve, resolve)
+      reject$ = x(onReject, reject)
     })
 
     if (this.state === pending) {
-      this.thens.push([resolve, reject])
+      this.thens.push([resolve$, reject$])
     } else if (this.state === resolved) {
-      resolve(this.value)
+      resolve$(this.value)
     } else {
-      reject(this.value)
+      reject$(this.value)
     }
 
     return promise
